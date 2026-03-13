@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F0F4F8"> <View
+    android:layout_width="match_parent"
+    android:layout_height="320dp"
+    android:background="#0099FF" />
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/icon_circle"
+        android:layout_width="115dp"
+        android:layout_height="115dp"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="70dp"
+        app:cardCornerRadius="60dp"
+        app:cardElevation="16dp"
+        app:cardBackgroundColor="#FFFFFF">
+
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="22dp"
+            android:src="@drawable/ic_engineering"
+            android:background="#F0F9FF"
+            app:tint="#0099FF" />
+    </androidx.cardview.widget.CardView>
+
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/icon_circle"
+        android:layout_marginLeft="28dp"
+        android:layout_marginRight="28dp"
+        android:layout_marginTop="-25dp"
+        app:cardCornerRadius="30dp"
+        app:cardElevation="10dp"
+        app:cardBackgroundColor="#FFFFFF">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="35dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:letterSpacing="0.15"
+                android:text="ELECTRICANOVA"
+                android:textColor="#1A365D"
+                android:textSize="24sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:layout_marginTop="4dp"
+                android:text="Panel de Control SMT"
+                android:textColor="#A0AEC0"
+                android:textSize="14sp"
+                android:fontFamily="sans-serif-medium" />
+
+            <EditText
+                android:id="@+id/etUser"
+                android:layout_width="match_parent"
+                android:layout_height="58dp"
+                android:layout_marginTop="35dp"
+                android:background="@drawable/rounded_edittext"
+                android:hint="Número de Empleado"
+                android:inputType="text|textCapCharacters"
+                android:paddingLeft="22dp"
+                android:textColor="#2D3748"
+                android:textColorHint="#CBD5E0"
+                android:textSize="16sp"
+                android:elevation="2dp" />
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="18dp"
+                app:hintEnabled="false"
+                app:passwordToggleEnabled="true"
+                app:passwordToggleTint="#0099FF"
+                app:elevation="2dp">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etPass"
+                    android:layout_width="match_parent"
+                    android:layout_height="58dp"
+                    android:background="@drawable/rounded_edittext"
+                    android:hint="Contraseña"
+                    android:inputType="textPassword"
+                    android:paddingLeft="22dp"
+                    android:textColor="#2D3748"
+                    android:textColorHint="#CBD5E0"
+                    android:textSize="16sp" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <Button
+                android:id="@+id/btnLogin"
+                android:layout_width="match_parent"
+                android:layout_height="65dp"
+                android:layout_marginTop="40dp"
+                android:backgroundTint="#0099FF"
+                android:stateListAnimator="@null"
+                android:text="INGRESAR"
+                android:textAllCaps="true"
+                android:textColor="#FFFFFF"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:letterSpacing="0.05"
+                app:cornerRadius="18dp"
+                android:elevation="6dp" />
+
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="25dp"
+        android:gravity="center"
+        android:text="© 2026 Planta Principal"
+        android:textColor="#CBD5E0"
+        android:textSize="12sp" />
+
+</RelativeLayout>

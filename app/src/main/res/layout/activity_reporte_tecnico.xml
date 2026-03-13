@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    android:background="#EDF2F7">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Nuevo Reporte"
+                    android:textSize="28sp"
+                    android:fontFamily="sans-serif-black"
+                    android:textColor="#1A365D"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Línea SMT - Planta Principal"
+                    android:textColor="#718096"
+                    android:textSize="14sp"/>
+            </LinearLayout>
+
+            <ImageView
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_alignParentEnd="true"
+                android:layout_centerInParent="true"
+                android:src="@android:drawable/stat_notify_error"
+                app:tint="#1A365D" />
+        </RelativeLayout>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="UBICACIÓN Y ORDEN"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:textColor="#4A5568"
+            android:letterSpacing="0.1"
+            android:layout_marginBottom="8dp"/>
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardCornerRadius="20dp"
+            app:cardElevation="0dp"
+            app:strokeWidth="1dp"
+            app:strokeColor="#CBD5E0"
+            android:layout_marginBottom="20dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="12dp">
+
+                <Spinner
+                    android:id="@+id/spinnerOrden"
+                    android:layout_width="match_parent"
+                    android:layout_height="55dp"
+                    android:spinnerMode="dropdown"/>
+
+                <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#E2E8F0" android:layout_marginHorizontal="8dp"/>
+
+                <Spinner
+                    android:id="@+id/spinnerLinea"
+                    android:layout_width="match_parent"
+                    android:layout_height="55dp"
+                    android:spinnerMode="dropdown"/>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="DETALLES DE LA FALLA"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:textColor="#4A5568"
+            android:letterSpacing="0.1"
+            android:layout_marginBottom="8dp"/>
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardCornerRadius="20dp"
+            app:cardElevation="4dp"
+            app:cardBackgroundColor="#FFFFFF">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:weightSum="2">
+                    <Spinner android:id="@+id/spinnerTipoFalla" android:layout_width="0dp" android:layout_height="50dp" android:layout_weight="1"/>
+                    <Spinner android:id="@+id/spinnerPrioridad" android:layout_width="0dp" android:layout_height="50dp" android:layout_weight="1"/>
+                </LinearLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    app:boxCornerRadiusTopStart="15dp"
+                    app:boxCornerRadiusTopEnd="15dp"
+                    app:boxCornerRadiusBottomStart="15dp"
+                    app:boxCornerRadiusBottomEnd="15dp"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etDescripcion"
+                        android:layout_width="match_parent"
+                        android:layout_height="100dp"
+                        android:hint="¿Qué sucedió?"
+                        android:gravity="top"
+                        android:inputType="textMultiLine"/>
+                </com.google.android.material.textfield.TextInputLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            app:cardCornerRadius="20dp"
+            app:cardBackgroundColor="#E2E8F0"
+            app:cardElevation="0dp">
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="180dp">
+
+                <ImageView
+                    android:id="@+id/imgPreview"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerCrop"
+                    android:alpha="0.8"/>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnTomarFoto"
+                    style="@style/Widget.MaterialComponents.Button.TextButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerInParent="true"
+                    android:text="Capturar Evidencia"
+                    app:icon="@android:drawable/ic_menu_camera"
+                    android:textColor="#2D3748"/>
+            </RelativeLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnEnviarReporte"
+            android:layout_width="match_parent"
+            android:layout_height="65dp"
+            android:layout_marginTop="30dp"
+            android:text="REGISTRAR FALLA"
+            android:textSize="18sp"
+            android:fontFamily="sans-serif-medium"
+            app:cornerRadius="18dp"
+            android:backgroundTint="#2D3748"
+            app:elevation="8dp"/>
+
+        <TextView
+            android:id="@+id/btnIrHistorial"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Consultar Registros Previos"
+            android:gravity="center"
+            android:padding="16dp"
+            android:textColor="#718096"
+            android:textSize="14sp"/>
+
+    </LinearLayout>
+</ScrollView>
