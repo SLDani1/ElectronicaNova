@@ -6,13 +6,11 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.android.volley.Request
+import com.android.volley.toolbox.StringRequest
+import com.android.volley.toolbox.Volley
 import com.google.android.material.textfield.TextInputEditText
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import java.sql.PreparedStatement
-import java.sql.ResultSet
+import org.json.JSONObject
 
 class MainActivity : AppCompatActivity() {
 
@@ -21,8 +19,6 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         val etUser = findViewById<EditText>(R.id.etUser)
-
-
         val etPass = findViewById<TextInputEditText>(R.id.etPass)
         val btnLogin = findViewById<Button>(R.id.btnLogin)
 
@@ -31,64 +27,62 @@ class MainActivity : AppCompatActivity() {
             val pass = etPass.text.toString().trim()
 
             if (user.isEmpty() || pass.isEmpty()) {
-                Toast.makeText(this, "Por favor llena todos los campos", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Por favor, llena todos los campos", Toast.LENGTH_SHORT).show()
             } else {
-                ejecutarLoginDirecto(user, pass)
+                ejecutarLoginAPI(user, pass)
             }
         }
     }
 
-    private fun ejecutarLoginDirecto(user: String, pass: String) {
-        CoroutineScope(Dispatchers.IO).launch {
-            val conn = DatabaseHelper.getConnection()
+    private fun ejecutarLoginAPI(user: String, pass: String) {
+        val url = "${ApiConfig.URL_BASE}/login.php"
 
-            if (conn != null) {
+        val request = object : StringRequest(Request.Method.POST, url,
+            { response ->
                 try {
-                    val sql = "SELECT nombre, rol_id FROM usuarios WHERE numero_empleado = ? AND password = ? AND activo = 1"
-                    val statement: PreparedStatement = conn.prepareStatement(sql)
-                    statement.setString(1, user)
-                    statement.setString(2, pass)
+                    val json = JSONObject(response)
+                    if (json.getString("status") == "success") {
+                        val nombre = json.getString("nombre")
+                        val rolId = json.getInt("rol_id")
 
-                    val resultSet: ResultSet = statement.executeQuery()
+                        // Redirigir según el rol recibido
+                        irAlDashboard(rolId, nombre)
 
-                    if (resultSet.next()) {
-                        val nombre = resultSet.getString("nombre")
-                        val rolId = resultSet.getInt("rol_id")
-
-                        withContext(Dispatchers.Main) {
-                            irAlDashboard(rolId, nombre)
-                        }
                     } else {
-                        withContext(Dispatchers.Main) {
-                            Toast.makeText(this@MainActivity, "Usuario o contraseña incorrectos", Toast.LENGTH_SHORT).show()
-                        }
+                        Toast.makeText(this, "Credenciales incorrectas", Toast.LENGTH_SHORT).show()
                     }
-                    conn.close()
                 } catch (e: Exception) {
-                    withContext(Dispatchers.Main) {
-                        Toast.makeText(this@MainActivity, "Error en consulta: ${e.message}", Toast.LENGTH_LONG).show()
-                    }
+                    Toast.makeText(this, "Error en respuesta del servidor", Toast.LENGTH_SHORT).show()
                 }
-            } else {
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(this@MainActivity, "No se pudo conectar a la base de datos (XAMPP)", Toast.LENGTH_LONG).show()
-                }
+            },
+            { error ->
+                Toast.makeText(this, "Error de red: Verifica tu conexión o IP", Toast.LENGTH_LONG).show()
+            }) {
+            override fun getParams(): Map<String, String> {
+                return mapOf("user" to user, "pass" to pass)
             }
         }
+        Volley.newRequestQueue(this).add(request)
     }
 
     private fun irAlDashboard(rolId: Int, nombre: String) {
         val intent: Intent? = when (rolId) {
-            1 -> Intent(this, DashboardTecnicoActivity::class.java)
+            1 -> Intent(this, DashboardTecnicoActivity::class.java)       //TECNICO
+            2 -> Intent(this, DashboardIngenieroActivity::class.java)   //INGENIERO
+            3 -> Intent(this, DashboardGerenteActivity::class.java)    //GERENTE
+
             else -> null
         }
 
         if (intent != null) {
             intent.putExtra("USER_NAME", nombre)
+            // Opcional: Pasar empresa por defecto si no tienes un selector de planta aún
+            intent.putExtra("EMPRESA_TIPO", "KIA")
+
             startActivity(intent)
-            finish()
+            finish() // Evita que regresen al login con el botón de "atrás"
         } else {
-            Toast.makeText(this, "Rol no reconocido: $rolId", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Acceso denegado: Rol $rolId no reconocido", Toast.LENGTH_SHORT).show()
         }
     }
 }

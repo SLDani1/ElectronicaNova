@@ -18,28 +18,48 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Final"
         android:usesCleartextTraffic="true">
-
+        <activity
+            android:name=".DashboardIngenieroActivity"
+            android:exported="false" />
         <activity
             android:name=".MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
         <activity
             android:name=".DashboardTecnicoActivity"
             android:exported="false" />
-
         <activity
             android:name=".ReporteTecnicoActivity"
             android:exported="false" />
-
         <activity
             android:name=".HistorialFallasActivity"
             android:exported="false" />
+        <activity
+            android:name=".DashboardHorarioActivity"
+            android:exported="false" />
+        <activity
+            android:name=".DetalleProduccionActivity"
+            android:exported="false" />
+        <activity
+            android:name=".DashboardGerenteActivity"
+            android:exported="false" />
+        <activity
+            android:name=".GestionUsuariosActivity"
+            android:exported="false" />
 
+        <activity android:name=".ValidarRetrabajosActivity"
+            android:exported="false" />
+
+        <activity android:name=".DetalleFallaActivity"
+            android:exported="false" />
+
+        <activity android:name=".ValidarFallasActivity"
+            android:exported="false" />
     </application>
 
 </manifest>

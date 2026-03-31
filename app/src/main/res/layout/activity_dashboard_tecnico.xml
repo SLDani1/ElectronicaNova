@@ -17,6 +17,17 @@
             android:background="#1A365D"
             android:padding="30dp">
 
+            <ImageButton
+                android:id="@+id/btnCerrarSesion"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_alignParentEnd="true"
+                android:layout_alignParentTop="true"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:scaleType="centerInside"
+                android:src="@android:drawable/ic_menu_revert"
+                app:tint="#A0AEC0" />
+
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -28,21 +39,21 @@
                     android:id="@+id/tvUserRole"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:fontFamily="sans-serif-black"
+                    android:letterSpacing="0.02"
                     android:text="Técnico SMT"
-                    android:textColor="#E2E8F0"
-                    android:letterSpacing="0.05"
-                    android:textSize="28sp"
-                    android:fontFamily="sans-serif-black" />
+                    android:textColor="#FFFFFF"
+                    android:textSize="30sp" />
 
                 <TextView
                     android:id="@+id/tvUserName"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
+                    android:layout_marginTop="6dp"
+                    android:fontFamily="sans-serif-medium"
                     android:text="Cargando nombre..."
-                    android:textColor="#A0AEC0"
-                    android:textSize="18sp"
-                    android:fontFamily="sans-serif-medium" />
+                    android:textColor="#94A3B8"
+                    android:textSize="18sp" />
             </LinearLayout>
 
             <androidx.cardview.widget.CardView
@@ -53,39 +64,40 @@
                 android:layout_marginTop="-30dp"
                 app:cardBackgroundColor="#2D3748"
                 app:cardCornerRadius="40dp"
-                app:cardElevation="8dp">
+                app:cardElevation="0dp">
 
                 <ImageView
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
+                    android:layout_width="44dp"
+                    android:layout_height="44dp"
                     android:layout_gravity="center"
                     android:src="@android:drawable/ic_menu_myplaces"
                     app:tint="#FFFFFF" />
             </androidx.cardview.widget.CardView>
         </RelativeLayout>
 
-        <GridLayout
+        <LinearLayout
+            android:id="@+id/menuCards"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_below="@id/header"
             android:layout_marginTop="-80dp"
-            android:alignmentMode="alignMargins"
-            android:columnCount="2"
-            android:padding="16dp">
+            android:clipToPadding="false"
+            android:orientation="horizontal"
+            android:paddingHorizontal="16dp"
+            android:weightSum="2">
 
             <androidx.cardview.widget.CardView
                 android:id="@+id/cardReportarFalla"
                 android:layout_width="0dp"
-                android:layout_height="185dp"
-                android:layout_rowWeight="1"
-                android:layout_columnWeight="1"
-                android:layout_margin="10dp"
+                android:layout_height="200dp"
+                android:layout_margin="8dp"
+                android:layout_weight="1"
                 android:clickable="true"
                 android:focusable="true"
                 android:foreground="?android:attr/selectableItemBackground"
                 app:cardBackgroundColor="#FFFFFF"
                 app:cardCornerRadius="24dp"
-                app:cardElevation="10dp">
+                app:cardElevation="8dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -94,17 +106,27 @@
                     android:orientation="vertical"
                     android:padding="16dp">
 
-                    <ImageView
-                        android:layout_width="70dp"
-                        android:layout_height="70dp"
-                        android:src="@android:drawable/ic_menu_camera"
-                        app:tint="#DD6B20" />
+                    <androidx.cardview.widget.CardView
+                        android:layout_width="64dp"
+                        android:layout_height="64dp"
+                        app:cardBackgroundColor="#FFF5EB"
+                        app:cardCornerRadius="32dp"
+                        app:cardElevation="0dp">
+
+                        <ImageView
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
+                            android:layout_gravity="center"
+                            android:src="@android:drawable/ic_menu_camera"
+                            app:tint="#DD6B20" />
+                    </androidx.cardview.widget.CardView>
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="16dp"
-                        android:text="Reportar Falla"
+                        android:layout_marginTop="20dp"
+                        android:text="Reportar\nFalla"
+                        android:textAlignment="center"
                         android:textColor="#2D3748"
                         android:textSize="17sp"
                         android:textStyle="bold" />
@@ -114,16 +136,15 @@
             <androidx.cardview.widget.CardView
                 android:id="@+id/cardHistorialReportes"
                 android:layout_width="0dp"
-                android:layout_height="185dp"
-                android:layout_rowWeight="1"
-                android:layout_columnWeight="1"
-                android:layout_margin="10dp"
+                android:layout_height="200dp"
+                android:layout_margin="8dp"
+                android:layout_weight="1"
                 android:clickable="true"
                 android:focusable="true"
                 android:foreground="?android:attr/selectableItemBackground"
                 app:cardBackgroundColor="#FFFFFF"
                 app:cardCornerRadius="24dp"
-                app:cardElevation="10dp">
+                app:cardElevation="8dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -132,30 +153,64 @@
                     android:orientation="vertical"
                     android:padding="16dp">
 
-                    <ImageView
-                        android:layout_width="70dp"
-                        android:layout_height="70dp"
-                        android:src="@android:drawable/ic_menu_recent_history"
-                        app:tint="#3182CE" />
+                    <androidx.cardview.widget.CardView
+                        android:layout_width="64dp"
+                        android:layout_height="64dp"
+                        app:cardBackgroundColor="#EBF8FF"
+                        app:cardCornerRadius="32dp"
+                        app:cardElevation="0dp">
+
+                        <ImageView
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
+                            android:layout_gravity="center"
+                            android:src="@android:drawable/ic_menu_recent_history"
+                            app:tint="#3182CE" />
+                    </androidx.cardview.widget.CardView>
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="16dp"
-                        android:text="Mis Reportes"
+                        android:layout_marginTop="20dp"
+                        android:text="Mis\nReportes"
+                        android:textAlignment="center"
                         android:textColor="#2D3748"
                         android:textSize="17sp"
                         android:textStyle="bold" />
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
-        </GridLayout>
+        </LinearLayout>
+
+        <androidx.cardview.widget.CardView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/menuCards"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="30dp"
+            app:cardBackgroundColor="#E2E8F0"
+            app:cardCornerRadius="20dp"
+            app:cardElevation="0dp">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingHorizontal="16dp"
+                android:paddingVertical="10dp">
+
+
+
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
-            android:layout_marginTop="40dp"
+            android:layout_marginTop="60dp"
             android:layout_marginBottom="20dp"
             android:gravity="center"
             android:text="Gestión de Planta v2.0"

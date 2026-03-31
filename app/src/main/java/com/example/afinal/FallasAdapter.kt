@@ -1,6 +1,5 @@
 package com.example.afinal
 
-
 import android.content.res.ColorStateList
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
@@ -10,7 +9,10 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 
-class FallasAdapter(private val lista: List<FallaDia>) : RecyclerView.Adapter<FallasAdapter.FallaVH>() {
+class FallasAdapter(
+    private val datos: List<FallaDia>,
+    private val onClick: (FallaDia) -> Unit
+) : RecyclerView.Adapter<FallasAdapter.FallaVH>() {
 
     class FallaVH(v: View) : RecyclerView.ViewHolder(v) {
         val dot: View = v.findViewById(R.id.viewEstadoColor)
@@ -24,36 +26,34 @@ class FallasAdapter(private val lista: List<FallaDia>) : RecyclerView.Adapter<Fa
     }
 
     override fun onBindViewHolder(holder: FallaVH, position: Int) {
-        val f = lista[position]
+        val falla = datos[position]
 
-        // Texto principal
-        holder.tit.text = f.descripcion
-        holder.est.text = f.estado.uppercase()
+        holder.tit.text = falla.descripcion
+        holder.est.text = falla.estatus_falla.uppercase()
 
-        // Configuración de colores (Texto y Fondo de la etiqueta)
-        val (colorHex, bgHex) = when (f.estado.lowercase()) {
+        // Lógica de colores basada en tu base de datos
+        val estado = falla.estatus_falla.lowercase()
+        val (colorHex, bgHex) = when (estado) {
             "abierta", "pendiente" -> Pair("#E53935", "#FFEBEE") // Rojo
-            "atendida" -> Pair("#FB8C00", "#FFF3E0")             // Naranja
-            "cerrada" -> Pair("#43A047", "#E8F5E9")              // Verde
-            else -> Pair("#757575", "#F5F5F5")                   // Gris
+            "atendida"             -> Pair("#FB8C00", "#FFF3E0") // Naranja
+            "cerrada"              -> Pair("#43A047", "#E8F5E9") // Verde
+            else                   -> Pair("#757575", "#F5F5F5") // Gris
         }
 
         val colorInt = Color.parseColor(colorHex)
-        val bgColorInt = Color.parseColor(bgHex)
-
-        // 1. Color del círculo indicador
         holder.dot.backgroundTintList = ColorStateList.valueOf(colorInt)
 
-        // 2. Fondo redondeado para el texto de estado
+        // Fondo redondeado para el texto del estado
         val badge = GradientDrawable().apply {
             shape = GradientDrawable.RECTANGLE
-            cornerRadius = 30f // Hace que parezca una píldora
-            setColor(bgColorInt)
+            cornerRadius = 30f
+            setColor(Color.parseColor(bgHex))
         }
-
         holder.est.background = badge
         holder.est.setTextColor(colorInt)
+
+        holder.itemView.setOnClickListener { onClick(falla) }
     }
 
-    override fun getItemCount() = lista.size
+    override fun getItemCount() = datos.size
 }

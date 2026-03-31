@@ -1,7 +1,10 @@
 package com.example.afinal
 
 data class FallaDia(
-    val prioridad: String,
+    val id: String,
     val descripcion: String,
-    val estado: String
+    val prioridad: String,
+    val estatus_falla: String,
+    val hora: String,
+    val imagen: String
 )
