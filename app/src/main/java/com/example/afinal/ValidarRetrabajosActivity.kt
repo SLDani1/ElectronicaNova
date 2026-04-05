@@ -7,7 +7,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import org.json.JSONObject
-import java.io.OutputStreamWriter
 import java.net.HttpURLConnection
 import java.net.URL
 
@@ -19,7 +18,8 @@ class ValidarRetrabajosActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_validar_retrabajos)
 
-        findViewById<ImageView>(R.id.btnBack).setOnClickListener { finish() }
+        // Botón de atrás con protección de nulos
+        findViewById<ImageView>(R.id.btnBack)?.setOnClickListener { finish() }
 
         rv = findViewById(R.id.rvRetrabajos)
         rv.layoutManager = LinearLayoutManager(this)
@@ -37,44 +37,26 @@ class ValidarRetrabajosActivity : AppCompatActivity() {
                 val conn = URL(urlApi).openConnection() as HttpURLConnection
                 conn.requestMethod = "POST"
                 conn.doOutput = true
-                OutputStreamWriter(conn.outputStream).use { it.write("accion=obtener_retrabajos") }
+                conn.outputStream.use { it.write("accion=obtener_retrabajos".toByteArray()) }
 
-                val resp = conn.inputStream.bufferedReader().readText()
+                val resp = conn.inputStream.bufferedReader().use { it.readText() }
                 val json = JSONObject(resp)
 
                 runOnUiThread {
-                    if (json.getBoolean("exito")) {
-                        rv.adapter = RetrabajosAdapter(json.getJSONArray("datos")) { id, estado ->
-                            enviarDecision(id, estado)
+                    if (json.optBoolean("exito", false)) {
+                        val datosArray = json.getJSONArray("datos")
+                        if (datosArray.length() > 0) {
+                            rv.adapter = RetrabajosAdapter(datosArray)
+                        } else {
+                            rv.adapter = null
+                            Toast.makeText(this, "No hay piezas en Retrabajo", Toast.LENGTH_SHORT).show()
                         }
                     } else {
-                        Toast.makeText(this, "Sin retrabajos pendientes", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this, "Error: " + json.optString("error"), Toast.LENGTH_LONG).show()
                     }
                 }
             } catch (e: Exception) {
-                runOnUiThread { Toast.makeText(this, "Error de red", Toast.LENGTH_SHORT).show() }
-            }
-        }.start()
-    }
-
-    private fun enviarDecision(id: String, estado: String) {
-        Thread {
-            try {
-                val conn = URL(urlApi).openConnection() as HttpURLConnection
-                conn.requestMethod = "POST"
-                conn.doOutput = true
-                OutputStreamWriter(conn.outputStream).use {
-                    it.write("accion=validar_retrabajo&id_retrabajo=$id&estado=$estado")
-                }
-
-                if (conn.responseCode == 200) {
-                    runOnUiThread {
-                        Toast.makeText(this, "Acción registrada: $estado", Toast.LENGTH_SHORT).show()
-                        cargarLista()
-                    }
-                }
-            } catch (e: Exception) {
-                runOnUiThread { Toast.makeText(this, "Error al enviar", Toast.LENGTH_SHORT).show() }
+                runOnUiThread { Toast.makeText(this, "Error de conexión", Toast.LENGTH_SHORT).show() }
             }
         }.start()
     }

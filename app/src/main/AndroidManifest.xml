@@ -60,6 +60,20 @@
 
         <activity android:name=".ValidarFallasActivity"
             android:exported="false" />
+
+        <activity
+            android:name=".DetalleRetrabajoActivity"
+            android:exported="false" />
+
+        <activity android:name=".ListaFallasActivity"
+            android:exported="false" />
+        <activity android:name=".VistaFallaActivity"
+            android:exported="false" /> />
+
+        <activity
+            android:name=".HistorialParosActivity"
+            android:exported="false" />
+
     </application>
 
 </manifest>

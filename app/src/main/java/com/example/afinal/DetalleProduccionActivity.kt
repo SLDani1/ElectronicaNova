@@ -34,9 +34,7 @@ class DetalleProduccionActivity : AppCompatActivity() {
     private lateinit var barChartScrap: BarChart
 
     private val CHANNEL_ID = "ALERTA_CALIDAD_SMT"
-    private var empresaSeleccionada = "KIA" // o "TYT"
-
-    // URL convertida al formato ApiConfig
+    private var empresaSeleccionada = "KIA"
     private val urlApi = "${ApiConfig.URL_BASE}/get_gerente_data.php"
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -55,71 +53,61 @@ class DetalleProduccionActivity : AppCompatActivity() {
         empresaSeleccionada = intent.getStringExtra("EMPRESA_TIPO") ?: "KIA"
 
         crearCanalNotificaciones()
-
-        swipeRefresh.setOnRefreshListener {
-            obtenerDatosServidor()
-        }
-
+        swipeRefresh.setOnRefreshListener { obtenerDatosServidor() }
         obtenerDatosServidor()
     }
 
     private fun obtenerDatosServidor() {
         swipeRefresh.isRefreshing = true
-
-        // Se utiliza la variable centralizada urlApi
         val request = JsonObjectRequest(Request.Method.GET, urlApi, null,
             { response ->
                 swipeRefresh.isRefreshing = false
                 try {
                     val meta = response.getInt("meta_del_dia")
-                    val scrapTotal = response.getInt("scrap_total")
+                    val scrapTotalBD = response.getInt("scrap_total")
 
                     val produccionArray = response.getJSONArray("produccion_horaria")
-                    var produccionActual = 0
+                    var produccionActualEmpresa = 0
+                    var produccionTotalPlanta = 0
 
                     for (i in 0 until produccionArray.length()) {
                         val obj = produccionArray.getJSONObject(i)
+                        produccionTotalPlanta += obj.getInt("total")
                         if (empresaSeleccionada == "KIA") {
-                            produccionActual += obj.getInt("kia")
+                            produccionActualEmpresa += obj.getInt("kia")
                         } else {
-                            produccionActual += obj.getInt("toyota")
+                            produccionActualEmpresa += obj.getInt("toyota")
                         }
                     }
 
-                    var produccionTotalPlanta = 0
-                    for (i in 0 until produccionArray.length()) {
-                        produccionTotalPlanta += produccionArray.getJSONObject(i).getInt("total")
-                    }
-
                     val porcentajeScrap = if (produccionTotalPlanta > 0) {
-                        (scrapTotal.toFloat() / produccionTotalPlanta.toFloat()) * 100
-                    } else {
-                        0f
-                    }
+                        (scrapTotalBD.toFloat() / produccionTotalPlanta.toFloat()) * 100
+                    } else { 0f }
 
                     if (porcentajeScrap > 5.0f) {
-                        lanzarNotificacionPush("ALERTA DE CALIDAD", "Scrap Crítico general: ${String.format("%.1f", porcentajeScrap)}%")
+                        lanzarNotificacionPush("ALERTA DE CALIDAD", "Scrap Crítico: ${String.format("%.1f", porcentajeScrap)}%")
                     }
 
-                    actualizarInterfaz(produccionActual, meta, porcentajeScrap)
+                    actualizarInterfaz(produccionActualEmpresa, meta, scrapTotalBD, porcentajeScrap)
 
                 } catch (e: Exception) {
-                    Toast.makeText(this, "Error en formato de datos: ${e.message}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "Error en datos: ${e.message}", Toast.LENGTH_SHORT).show()
                 }
             },
             { error ->
                 swipeRefresh.isRefreshing = false
-                Toast.makeText(this, "Sin conexión con el servidor", Toast.LENGTH_LONG).show()
+                Toast.makeText(this, "Error de conexión", Toast.LENGTH_LONG).show()
             }
         )
         Volley.newRequestQueue(this).add(request)
     }
 
-    private fun actualizarInterfaz(actual: Int, meta: Int, scrapPercent: Float) {
+    private fun actualizarInterfaz(actual: Int, meta: Int, scrapReal: Int, scrapPercent: Float) {
         tvEmpresa.text = "$empresaSeleccionada - Producción Real"
         tvMetaVal.text = meta.toString()
         tvProduccionVal.text = actual.toString()
 
+        // Seguridad: Si la meta es 0, el cumplimiento es 0% (evita crash por división / 0)
         val cumplimiento = if (meta > 0) (actual.toFloat() / meta.toFloat() * 100).toInt() else 0
         tvPorcentajeVal.text = "$cumplimiento%"
 
@@ -133,45 +121,44 @@ class DetalleProduccionActivity : AppCompatActivity() {
         statusIndicator.setBackgroundColor(colorSemaforo)
         tvPorcentajeVal.setTextColor(colorSemaforo)
 
-        renderizarGraficas(actual, meta, scrapPercent, colorSemaforo)
+        renderizarGraficas(actual, meta, scrapReal, colorSemaforo)
     }
 
-    private fun renderizarGraficas(actual: Int, meta: Int, scrapPercent: Float, color: Int) {
+    private fun renderizarGraficas(actual: Int, meta: Int, scrapReal: Int, color: Int) {
+        // PieChart
         val entriesPie = ArrayList<PieEntry>()
         val pLogrado = if (meta > 0) (actual.toFloat() / meta.toFloat() * 100) else 0f
-        entriesPie.add(PieEntry(pLogrado, "Producción"))
+
+        if (pLogrado > 0) entriesPie.add(PieEntry(pLogrado, "Producción"))
         if (pLogrado < 100) entriesPie.add(PieEntry(100f - pLogrado, "Faltante"))
 
         val dataSetPie = PieDataSet(entriesPie, "")
         dataSetPie.colors = listOf(color, Color.LTGRAY)
         pieChartCumplimiento.data = PieData(dataSetPie).apply {
             setValueFormatter(PercentFormatter(pieChartCumplimiento))
-            setValueTextSize(14f)
+            setValueTextSize(12f)
             setValueTextColor(Color.WHITE)
         }
         pieChartCumplimiento.setUsePercentValues(true)
         pieChartCumplimiento.description.isEnabled = false
         pieChartCumplimiento.invalidate()
 
+        // BarChart
         val entriesBar = ArrayList<BarEntry>()
         entriesBar.add(BarEntry(0f, actual.toFloat()))
-        val piezasScrapAprox = actual * (scrapPercent / 100)
-        entriesBar.add(BarEntry(1f, piezasScrapAprox))
+        entriesBar.add(BarEntry(1f, scrapReal.toFloat()))
 
-        val dataSetBar = BarDataSet(entriesBar, "Prod vs Scrap Aprox")
+        val dataSetBar = BarDataSet(entriesBar, "Producción (Azul) vs Scrap (Rojo)")
         dataSetBar.colors = listOf(Color.parseColor("#2196F3"), Color.parseColor("#F44336"))
-        barChartScrap.data = BarData(dataSetBar).apply {
-            setValueTextSize(12f)
-        }
+        barChartScrap.data = BarData(dataSetBar).apply { setValueTextSize(12f) }
         barChartScrap.description.isEnabled = false
+        barChartScrap.xAxis.isEnabled = false
         barChartScrap.invalidate()
     }
 
     private fun crearCanalNotificaciones() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(CHANNEL_ID, "Alertas SMT", NotificationManager.IMPORTANCE_HIGH).apply {
-                description = "Notificaciones de scrap alto"
-            }
+            val channel = NotificationChannel(CHANNEL_ID, "Alertas SMT", NotificationManager.IMPORTANCE_HIGH)
             val manager = getSystemService(NotificationManager::class.java)
             manager.createNotificationChannel(channel)
         }
@@ -188,7 +175,6 @@ class DetalleProduccionActivity : AppCompatActivity() {
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setContentIntent(pIntent)
             .setAutoCancel(true)
-            .setColor(Color.RED)
             .build()
 
         val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager

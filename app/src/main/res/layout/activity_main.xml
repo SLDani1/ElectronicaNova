@@ -8,7 +8,7 @@
     <View
         android:layout_width="match_parent"
         android:layout_height="320dp"
-        android:background="#0099FF" />
+        android:background="#1A365D" />
 
     <androidx.cardview.widget.CardView
         android:id="@+id/icon_circle"
@@ -85,7 +85,7 @@
                 android:layout_marginTop="18dp"
                 app:hintEnabled="false"
                 app:passwordToggleEnabled="true"
-                app:passwordToggleTint="#0099FF"
+                app:passwordToggleTint="#1A365D"
                 app:elevation="2dp">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -106,7 +106,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="65dp"
                 android:layout_marginTop="40dp"
-                android:backgroundTint="#0099FF"
+                android:backgroundTint="#1A365D"
                 android:stateListAnimator="@null"
                 android:text="INGRESAR"
                 android:textAllCaps="true"

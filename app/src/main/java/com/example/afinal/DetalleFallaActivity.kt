@@ -9,6 +9,7 @@ import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog // <--- IMPORTANTE PARA LAS ALERTAS
 import androidx.appcompat.app.AppCompatActivity
 import com.bumptech.glide.Glide
 import java.io.OutputStreamWriter
@@ -49,9 +50,8 @@ class DetalleFallaActivity : AppCompatActivity() {
         tvHora.text = "Registrado a las: $hora"
         tvDesc.text = descripcion
 
-        // 4. Lógica de Carga de Imagen (CORREGIDA)
+        // 4. Lógica de Carga de Imagen (Intacta, como la tenías)
         if (rutaImagenBD.isNotEmpty()) {
-            // Como ApiConfig.URL_BASE ya termina en /api, solo sumamos / y la ruta
             val urlFinal = "${ApiConfig.URL_BASE}/$rutaImagenBD"
 
             Log.d("DEBUG_IMAGE", "Cargando desde: $urlFinal")
@@ -72,13 +72,36 @@ class DetalleFallaActivity : AppCompatActivity() {
         // 5. Configurar Botones
         btnBack.setOnClickListener { finish() }
 
+        // NUEVA LÓGICA CON ALERTAS DE CONFIRMACIÓN
         btnAtendido.setOnClickListener {
-            actualizarEstadoFalla("Atendida")
+            mostrarDialogoConfirmacion(
+                titulo = "Marcar como Atendido",
+                mensaje = "¿Estás seguro de que deseas marcarlo como atendido?",
+                nuevoEstado = "Atendida"
+            )
         }
 
         btnCerrar.setOnClickListener {
-            actualizarEstadoFalla("Cerrada")
+            mostrarDialogoConfirmacion(
+                titulo = "Cerrar Reporte",
+                mensaje = " ¿Estás seguro de que deseas cerrar este reporte?",
+                nuevoEstado = "Cerrada"
+            )
         }
+    }
+
+    // FUNCIÓN QUE CREA EL CUADRO DE DIÁLOGO
+    private fun mostrarDialogoConfirmacion(titulo: String, mensaje: String, nuevoEstado: String) {
+        AlertDialog.Builder(this)
+            .setTitle(titulo)
+            .setMessage(mensaje)
+            .setCancelable(false) // Obliga a elegir una opción
+            .setPositiveButton("SÍ, CONFIRMAR") { _, _ ->
+                // Solo si acepta, se hace la petición al servidor
+                actualizarEstadoFalla(nuevoEstado)
+            }
+            .setNegativeButton("CANCELAR", null) // Si cancela, no hace nada
+            .show()
     }
 
     private fun actualizarEstadoFalla(nuevoEstado: String) {

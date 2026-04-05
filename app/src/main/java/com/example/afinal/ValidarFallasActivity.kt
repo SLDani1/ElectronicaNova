@@ -13,7 +13,7 @@ import java.net.HttpURLConnection
 import java.net.URL
 
 class ValidarFallasActivity : AppCompatActivity() {
-    // La URL apunta a tu nueva API de ingeniero
+
     private val urlApi = "${ApiConfig.URL_BASE}/api_ingeniero.php"
     private lateinit var rvFallas: RecyclerView
 
@@ -21,17 +21,16 @@ class ValidarFallasActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_validar_fallas)
 
-        // Botón para regresar al Dashboard
+
         findViewById<ImageView>(R.id.btnBack).setOnClickListener { finish() }
 
-        // Configuración del RecyclerView
+
         rvFallas = findViewById(R.id.rvFallas)
         rvFallas.layoutManager = LinearLayoutManager(this)
     }
 
     override fun onResume() {
         super.onResume()
-        // Cargamos los datos cada vez que la pantalla se vuelve visible
         cargarFallas()
     }
 
@@ -42,7 +41,6 @@ class ValidarFallasActivity : AppCompatActivity() {
                 conn.requestMethod = "POST"
                 conn.doOutput = true
 
-                // Enviamos la acción al PHP
                 OutputStreamWriter(conn.outputStream).use {
                     it.write("accion=obtener_fallas")
                 }
@@ -54,13 +52,11 @@ class ValidarFallasActivity : AppCompatActivity() {
                     if (json.getBoolean("exito")) {
                         val datosArray = json.getJSONArray("datos")
 
-                        // --- PROCESAMIENTO: JSON -> LISTA DE OBJETOS KOTLIN ---
                         val listaFallas = mutableListOf<FallaDia>()
 
                         for (i in 0 until datosArray.length()) {
                             val item = datosArray.getJSONObject(i)
 
-                            // Mapeamos cada campo del JSON al modelo FallaDia
                             listaFallas.add(
                                 FallaDia(
                                     id = item.getString("id"),
@@ -74,16 +70,15 @@ class ValidarFallasActivity : AppCompatActivity() {
                             )
                         }
 
-                        // --- CONFIGURACIÓN DEL ADAPTADOR ---
                         rvFallas.adapter = FallasAdapter(listaFallas) { falla ->
-                            // Al hacer clic, enviamos TODO el objeto al Detalle
+
                             val intent = Intent(this, DetalleFallaActivity::class.java).apply {
                                 putExtra("ID", falla.id)
                                 putExtra("PRIORIDAD", falla.prioridad)
                                 putExtra("ESTATUS", falla.estatus_falla)
                                 putExtra("DESCRIPCION", falla.descripcion)
                                 putExtra("HORA", falla.hora)
-                                putExtra("IMAGEN", falla.imagen) // Pasamos la ruta de la foto
+                                putExtra("IMAGEN", falla.imagen)
                             }
                             startActivity(intent)
                         }

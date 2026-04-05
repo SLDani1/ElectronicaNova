@@ -1,6 +1,14 @@
 package com.example.afinal
 
+import android.graphics.Color
+import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
+import android.text.method.PasswordTransformationMethod
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -13,14 +21,11 @@ import java.net.HttpURLConnection
 import java.net.URL
 import kotlin.concurrent.thread
 
-// Modelo de datos
 data class Usuario(val id: Int, val nombre: String, val numeroEmpleado: String, val rolId: Int)
 
 class GestionUsuariosActivity : AppCompatActivity() {
 
-    // URL centralizada según tu estándar
     private val urlApi = "${ApiConfig.URL_BASE}/crud_usuarios.php"
-
     private lateinit var rvUsuarios: RecyclerView
     private val listaUsuarios = mutableListOf<Usuario>()
     private lateinit var adapter: UsuarioAdapter
@@ -31,53 +36,32 @@ class GestionUsuariosActivity : AppCompatActivity() {
 
         rvUsuarios = findViewById(R.id.rvUsuarios)
         rvUsuarios.layoutManager = LinearLayoutManager(this)
-
-        // Configuramos el adaptador
-        adapter = UsuarioAdapter(listaUsuarios) { usuarioAEditar ->
-            mostrarDialogoUsuario(usuarioAEditar) // ACTUALIZAR
-        }
+        adapter = UsuarioAdapter(listaUsuarios) { mostrarDialogoUsuario(it) }
         rvUsuarios.adapter = adapter
 
-        findViewById<FloatingActionButton>(R.id.fabAgregarUsuario).setOnClickListener {
-            mostrarDialogoUsuario(null) // CREAR
-        }
-
+        findViewById<FloatingActionButton>(R.id.fabAgregarUsuario).setOnClickListener { mostrarDialogoUsuario(null) }
         cargarUsuarios()
     }
 
     private fun cargarUsuarios() {
         thread {
             try {
-                // Se concatena la acción leer a la URL base
-                val url = URL("$urlApi?accion=leer")
-                val connection = url.openConnection() as HttpURLConnection
-                connection.requestMethod = "GET"
-
-                if (connection.responseCode == 200) {
-                    val response = connection.inputStream.bufferedReader().use { it.readText() }
-                    val jsonResponse = JSONObject(response)
-
-                    if (!jsonResponse.getBoolean("error")) {
-                        val jsonArray = jsonResponse.getJSONArray("usuarios")
+                val conn = URL("$urlApi?accion=leer").openConnection() as HttpURLConnection
+                if (conn.responseCode == 200) {
+                    val res = conn.inputStream.bufferedReader().use { it.readText() }
+                    val array = JSONObject(res).getJSONArray("usuarios")
+                    val temp = mutableListOf<Usuario>()
+                    for (i in 0 until array.length()) {
+                        val o = array.getJSONObject(i)
+                        temp.add(Usuario(o.getInt("id"), o.getString("nombre"), o.getString("numero_empleado"), o.getInt("rol_id")))
+                    }
+                    runOnUiThread {
                         listaUsuarios.clear()
-                        for (i in 0 until jsonArray.length()) {
-                            val obj = jsonArray.getJSONObject(i)
-                            listaUsuarios.add(
-                                Usuario(
-                                    id = obj.getInt("id"),
-                                    nombre = obj.getString("nombre"),
-                                    numeroEmpleado = obj.getString("numero_empleado"),
-                                    rolId = obj.getInt("rol_id")
-                                )
-                            )
-                        }
-                        runOnUiThread { adapter.notifyDataSetChanged() }
+                        listaUsuarios.addAll(temp)
+                        adapter.notifyDataSetChanged()
                     }
                 }
-                connection.disconnect()
-            } catch (e: Exception) {
-                runOnUiThread { Toast.makeText(this@GestionUsuariosActivity, "Error de red", Toast.LENGTH_SHORT).show() }
-            }
+            } catch (e: Exception) { e.printStackTrace() }
         }
     }
 
@@ -86,137 +70,138 @@ class GestionUsuariosActivity : AppCompatActivity() {
         val builder = AlertDialog.Builder(this)
         builder.setTitle(if (isCrear) "Nuevo Usuario" else "Actualizar Usuario")
 
-        val layout = LinearLayout(this)
-        layout.orientation = LinearLayout.VERTICAL
-        layout.setPadding(50, 40, 50, 10)
+        val layout = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(60, 40, 60, 20)
+        }
 
         val inputNombre = EditText(this).apply { hint = "Nombre Completo"; setText(usuario?.nombre ?: "") }
-        val inputNumEmp = EditText(this).apply { hint = "Número de Empleado"; setText(usuario?.numeroEmpleado ?: "") }
-        val inputPass = EditText(this).apply { hint = "Contraseña" }
+        val inputNumEmp = EditText(this).apply { hint = "Ej: EMP T 123"; setText(usuario?.numeroEmpleado ?: "") }
+        val tvStatus = TextView(this).apply { textSize = 12f; setPadding(10, 0, 0, 10) }
 
-        // IDs DE ROLES
-        val rbTecnico = RadioButton(this).apply { text = "Técnico"; id = 1 }
-        val rbIngeniero = RadioButton(this).apply { text = "Ingeniero"; id = 2 }
-        val rbGerente = RadioButton(this).apply { text = "Gerente"; id = 3 }
-
-        val radioGroup = RadioGroup(this).apply {
-            addView(rbTecnico)
-            addView(rbIngeniero)
-            addView(rbGerente)
-
-            when (usuario?.rolId) {
-                1 -> rbTecnico.isChecked = true
-                2 -> rbIngeniero.isChecked = true
-                3 -> rbGerente.isChecked = true
-                else -> rbTecnico.isChecked = true
-            }
+        // El campo de contraseña ahora está disponible siempre para poder resetearla
+        val inputPass = EditText(this).apply {
+            hint = if (isCrear) "Contraseña" else "Nueva contraseña (opcional)"
+            transformationMethod = PasswordTransformationMethod.getInstance()
         }
+
+        val rg = RadioGroup(this).apply {
+            addView(RadioButton(context).apply { text = "Técnico"; id = 1 })
+            addView(RadioButton(context).apply { text = "Ingeniero"; id = 2 })
+            addView(RadioButton(context).apply { text = "Gerente"; id = 3 })
+            check(usuario?.rolId ?: 1)
+        }
+
+        inputNumEmp.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                val texto = s.toString()
+                val upper = texto.uppercase()
+                if (upper.contains("T")) rg.check(1)
+                else if (upper.contains("I")) rg.check(2)
+                else if (upper.contains("G")) rg.check(3)
+
+                if (texto.length >= 4) {
+                    thread {
+                        try {
+                            val conn = URL(urlApi).openConnection() as HttpURLConnection
+                            conn.requestMethod = "POST"
+                            conn.doOutput = true
+                            val jsonCheck = JSONObject().apply {
+                                put("accion", "verificar")
+                                put("numero_empleado", texto)
+                                if (!isCrear) put("id", usuario?.id)
+                            }
+                            OutputStreamWriter(conn.outputStream).use { it.write(jsonCheck.toString()) }
+                            val res = conn.inputStream.bufferedReader().use { it.readText() }
+                            val ocupado = JSONObject(res).getBoolean("ocupado")
+                            runOnUiThread {
+                                if (ocupado) {
+                                    tvStatus.text = "⚠️ Este número ya está en uso"
+                                    tvStatus.setTextColor(Color.RED)
+                                } else {
+                                    tvStatus.text = "✅ Número disponible"
+                                    tvStatus.setTextColor(Color.parseColor("#27AE60"))
+                                }
+                            }
+                        } catch (e: Exception) {}
+                    }
+                }
+            }
+            override fun afterTextChanged(s: Editable?) {}
+        })
 
         layout.addView(inputNombre)
         layout.addView(inputNumEmp)
-        if (isCrear) layout.addView(inputPass)
-        layout.addView(TextView(this).apply { text = "Rol del usuario:"; setPadding(0,20,0,0) })
-        layout.addView(radioGroup)
+        layout.addView(tvStatus)
+        layout.addView(inputPass) // Agregado al layout siempre
+        layout.addView(rg)
 
         builder.setView(layout)
-
         builder.setPositiveButton("Guardar") { _, _ ->
-            val nombre = inputNombre.text.toString()
-            val numEmp = inputNumEmp.text.toString()
-            val pass = inputPass.text.toString()
-            val rolId = radioGroup.checkedRadioButtonId
+            val json = JSONObject().apply {
+                put("accion", if (isCrear) "crear" else "actualizar")
+                if (!isCrear) put("id", usuario?.id)
+                put("nombre", inputNombre.text.toString())
+                put("numero_empleado", inputNumEmp.text.toString())
+                put("rol_id", rg.checkedRadioButtonId)
 
-            if (nombre.isNotEmpty() && numEmp.isNotEmpty()) {
-                val jsonAEnviar = JSONObject().apply {
-                    put("accion", if (isCrear) "crear" else "actualizar")
-                    if (!isCrear) put("id", usuario?.id)
-                    put("nombre", nombre)
-                    put("numero_empleado", numEmp)
-                    put("rol_id", rolId)
-                    if (isCrear) put("password", pass)
+                // Solo mandamos la contraseña si no está vacía
+                val passTxt = inputPass.text.toString()
+                if (passTxt.isNotEmpty()) {
+                    put("password", passTxt)
                 }
-                enviarDatos(jsonAEnviar)
-            } else {
-                Toast.makeText(this, "Faltan datos", Toast.LENGTH_SHORT).show()
             }
+            enviarDatos(json)
         }
-        builder.setNegativeButton("Cancelar", null)
+        builder.setNegativeButton("Cerrar", null)
         builder.show()
     }
 
-    private fun enviarDatos(jsonData: JSONObject) {
+    private fun enviarDatos(json: JSONObject) {
         thread {
             try {
-                val url = URL(urlApi)
-                val connection = url.openConnection() as HttpURLConnection
-                connection.requestMethod = "POST"
-                connection.setRequestProperty("Content-Type", "application/json; utf-8")
-                connection.doOutput = true
-
-                OutputStreamWriter(connection.outputStream).use { it.write(jsonData.toString()) }
-
-                if (connection.responseCode == 200) {
-                    // Limpiamos el buffer de respuesta para cerrar correctamente
-                    connection.inputStream.bufferedReader().use { it.readText() }
-
-                    runOnUiThread {
-                        Toast.makeText(this@GestionUsuariosActivity, "Guardado correctamente", Toast.LENGTH_SHORT).show()
-                        cargarUsuarios()
-                    }
-                }
-                connection.disconnect()
-            } catch (e: Exception) {
-                runOnUiThread { Toast.makeText(this@GestionUsuariosActivity, "Error al guardar", Toast.LENGTH_SHORT).show() }
-            }
+                val conn = URL(urlApi).openConnection() as HttpURLConnection
+                conn.requestMethod = "POST"
+                conn.doOutput = true
+                OutputStreamWriter(conn.outputStream).use { it.write(json.toString()) }
+                if (conn.responseCode == 200) runOnUiThread { cargarUsuarios() }
+            } catch (e: Exception) { e.printStackTrace() }
         }
     }
 }
 
-// Adaptador de Usuario
-class UsuarioAdapter(
-    private val lista: List<Usuario>,
-    private val onEditarClick: (Usuario) -> Unit
-) : RecyclerView.Adapter<UsuarioAdapter.ViewHolder>() {
-
-    class ViewHolder(view: android.view.View) : RecyclerView.ViewHolder(view) {
-        val tvNombre: TextView = view.findViewById(R.id.tvItemNombre)
-        val tvNumEmp: TextView = view.findViewById(R.id.tvItemNumEmpleado)
-        val tvRol: TextView = view.findViewById(R.id.tvItemRol)
-        val btnEditar: ImageButton = view.findViewById(R.id.btnEditar)
+class UsuarioAdapter(private val lista: List<Usuario>, private val onClick: (Usuario) -> Unit) : RecyclerView.Adapter<UsuarioAdapter.ViewHolder>() {
+    class ViewHolder(v: View) : RecyclerView.ViewHolder(v) {
+        val tvNombre: TextView = v.findViewById(R.id.tvItemNombre)
+        val tvRol: TextView = v.findViewById(R.id.tvItemRol)
+        val tvNumEmpleado: TextView = v.findViewById(R.id.tvItemNumEmpleado)
+        val btn: ImageButton = v.findViewById(R.id.btnEditar)
     }
+    override fun onCreateViewHolder(p: ViewGroup, t: Int) = ViewHolder(LayoutInflater.from(p.context).inflate(R.layout.item_usuario, p, false))
+    override fun onBindViewHolder(h: ViewHolder, p: Int) {
+        val u = lista[p]
+        h.tvNombre.text = u.nombre
+        h.tvNumEmpleado.text = u.numeroEmpleado
 
-    override fun onCreateViewHolder(parent: android.view.ViewGroup, viewType: Int): ViewHolder {
-        val view = android.view.LayoutInflater.from(parent.context)
-            .inflate(R.layout.item_usuario, parent, false)
-        return ViewHolder(view)
-    }
-
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val user = lista[position]
-        holder.tvNombre.text = user.nombre
-        holder.tvNumEmp.text = "EMP: ${user.numeroEmpleado}"
-
-        when (user.rolId) {
+        val shape = GradientDrawable().apply { cornerRadius = 12f }
+        when(u.rolId) {
             1 -> {
-                holder.tvRol.text = "TÉCNICO"
-                holder.tvRol.setBackgroundColor(android.graphics.Color.parseColor("#38A169"))
+                h.tvRol.text = "TÉCNICO"
+                shape.setColor(Color.parseColor("#2ECC71"))
             }
             2 -> {
-                holder.tvRol.text = "INGENIERO"
-                holder.tvRol.setBackgroundColor(android.graphics.Color.parseColor("#DD6B20"))
+                h.tvRol.text = "INGENIERO"
+                shape.setColor(Color.parseColor("#E67E22"))
             }
             3 -> {
-                holder.tvRol.text = "GERENTE"
-                holder.tvRol.setBackgroundColor(android.graphics.Color.parseColor("#3182CE"))
-            }
-            else -> {
-                holder.tvRol.text = "DESCONOCIDO"
-                holder.tvRol.setBackgroundColor(android.graphics.Color.parseColor("#A0AEC0"))
+                h.tvRol.text = "GERENTE"
+                shape.setColor(Color.parseColor("#34495E"))
             }
         }
-
-        holder.btnEditar.setOnClickListener { onEditarClick(user) }
+        h.tvRol.setTextColor(Color.WHITE)
+        h.tvRol.background = shape
+        h.btn.setOnClickListener { onClick(u) }
     }
-
     override fun getItemCount() = lista.size
 }

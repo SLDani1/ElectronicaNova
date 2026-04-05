@@ -40,8 +40,7 @@
 
     <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
+        android:layout_height="match_parent"
         android:fillViewport="true">
 
         <LinearLayout
@@ -174,46 +173,8 @@
                                 android:textSize="14sp" />
                         </FrameLayout>
                     </com.google.android.material.card.MaterialCardView>
-
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
         </LinearLayout>
     </ScrollView>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="#FFFFFF"
-        android:elevation="16dp"
-        android:orientation="vertical"
-        android:padding="20dp">
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnAtendido"
-            android:layout_width="match_parent"
-            android:layout_height="56dp"
-            android:layout_marginBottom="12dp"
-            android:fontFamily="sans-serif-medium"
-            android:text="MARCAR ATENDIDO"
-            android:textAllCaps="false"
-            android:textSize="16sp"
-            app:backgroundTint="#F59E0B"
-            app:cornerRadius="12dp"
-            app:elevation="0dp" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnCerrar"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-            android:layout_width="match_parent"
-            android:layout_height="56dp"
-            android:fontFamily="sans-serif-medium"
-            android:text="Cerrar Reporte"
-            android:textAllCaps="false"
-            android:textColor="#DC2626"
-            android:textSize="16sp"
-            app:cornerRadius="12dp"
-            app:strokeColor="#DC2626"
-            app:strokeWidth="2dp" />
-    </LinearLayout>
-
 </LinearLayout>

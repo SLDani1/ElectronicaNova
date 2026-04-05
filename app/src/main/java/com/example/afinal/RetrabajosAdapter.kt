@@ -1,23 +1,18 @@
 package com.example.afinal
 
+import android.content.Intent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.button.MaterialButton
 import org.json.JSONArray
 
-class RetrabajosAdapter(
-    private val datos: JSONArray,
-    private val onAction: (id: String, estado: String) -> Unit
-) : RecyclerView.Adapter<RetrabajosAdapter.VH>() {
+class RetrabajosAdapter(private val datos: JSONArray) : RecyclerView.Adapter<RetrabajosAdapter.VH>() {
 
     class VH(v: View) : RecyclerView.ViewHolder(v) {
         val tvLinea: TextView = v.findViewById(R.id.tvLinea)
         val tvRetrabajo: TextView = v.findViewById(R.id.tvRetrabajo)
-        val btnAceptar: MaterialButton = v.findViewById(R.id.btnAceptar)
-        val btnNoViable: MaterialButton = v.findViewById(R.id.btnNoViable)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
@@ -27,12 +22,19 @@ class RetrabajosAdapter(
 
     override fun onBindViewHolder(h: VH, i: Int) {
         val obj = datos.getJSONObject(i)
-        val id = obj.getString("id")
-        h.tvLinea.text = obj.getString("linea")
+        h.tvLinea.text = "Proyecto: ${obj.getString("linea")}"
         h.tvRetrabajo.text = obj.getString("retrabajo")
 
-        h.btnAceptar.setOnClickListener { onAction(id, "Aceptado") }
-        h.btnNoViable.setOnClickListener { onAction(id, "No Viable") }
+        h.itemView.setOnClickListener {
+            val context = h.itemView.context
+            val intent = Intent(context, DetalleRetrabajoActivity::class.java).apply {
+                putExtra("ID", obj.getString("id"))
+                putExtra("LINEA", obj.getString("linea"))
+                putExtra("RETRABAJO", obj.getString("retrabajo"))
+                putExtra("IMAGEN", obj.optString("imagen", ""))
+            }
+            context.startActivity(intent)
+        }
     }
 
     override fun getItemCount() = datos.length()

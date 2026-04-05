@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="12dp"
+    android:layout_marginVertical="6dp"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="6dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:background="#FFF5F5"> <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:id="@+id/tvOrdenParo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Línea: ORD-KIA-001"
+            android:textStyle="bold"
+            android:textColor="#C62828"
+            android:textSize="20sp"
+            android:layout_alignParentStart="true"
+            android:layout_toStartOf="@+id/cardStatus"/>
+
+        <androidx.cardview.widget.CardView
+            android:id="@+id/cardStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            app:cardBackgroundColor="#C62828"
+            app:cardCornerRadius="8dp"
+            android:layout_centerVertical="true">
+
+            <TextView
+                android:id="@+id/tvStatusParo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="ACTIVO"
+                android:textColor="#FFFFFF"
+                android:textStyle="bold"
+                android:paddingHorizontal="10dp"
+                android:paddingVertical="4dp"
+                android:textSize="12sp"/>
+        </androidx.cardview.widget.CardView>
+    </RelativeLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#FFCDD2"
+            android:layout_marginVertical="10dp"/>
+
+        <TextView
+            android:id="@+id/tvMotivoParo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Atasco de banda transportadora en Pick and Place"
+            android:textColor="#333333"
+            android:textSize="17sp"
+            android:textStyle="normal"
+            android:lineSpacingExtra="3dp"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="12dp"
+            android:gravity="center_vertical">
+
+            <ImageView
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:src="@android:drawable/ic_menu_recent_history"
+                app:tint="#757575"/>
+
+            <TextView
+                android:id="@+id/tvFechaParo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Inicio: 2026-04-05 08:30:15"
+                android:textColor="#757575"
+                android:textSize="13sp"
+                android:layout_marginStart="6dp"/>
+        </LinearLayout>
+
+    </LinearLayout>
+</androidx.cardview.widget.CardView>
