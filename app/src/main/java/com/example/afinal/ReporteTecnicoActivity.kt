@@ -151,6 +151,9 @@ class ReporteTecnicoActivity : AppCompatActivity() {
         val linea = findViewById<Spinner>(R.id.spinnerLinea).selectedItem?.toString() ?: ""
         val tipoFalla = findViewById<Spinner>(R.id.spinnerTipoFalla).selectedItem?.toString() ?: ""
 
+        // RECUPERAMOS EL ID QUE VIENE DEL DASHBOARD
+        val idUsuario = intent.getIntExtra("USER_ID", -1).toString()
+
         // 2. Validaciones básicas
         if (desc.length < 10) {
             Toast.makeText(this, "Descripción mínima 10 caracteres", Toast.LENGTH_SHORT).show()
@@ -204,7 +207,8 @@ class ReporteTecnicoActivity : AppCompatActivity() {
                     "orden" to orden,
                     "linea" to linea,
                     "tipo_falla" to tipoFalla,
-                    "imagen" to imagenBase64
+                    "imagen" to imagenBase64,
+                    "registrado_por" to idUsuario
                 )
             }
         }
@@ -220,7 +224,7 @@ class ReporteTecnicoActivity : AppCompatActivity() {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT else PendingIntent.FLAG_UPDATE_CURRENT
         )
         val builder = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setSmallIcon(R.mipmap.ic_launcher) // Ícono por defecto, cámbialo si tienes uno específico
+            .setSmallIcon(R.mipmap.ic_launcher)
             .setContentTitle("ALERTA: FALLA $prio")
             .setContentText("Se ha registrado una falla técnica. Toca para ver detalles.")
             .setPriority(NotificationCompat.PRIORITY_HIGH)

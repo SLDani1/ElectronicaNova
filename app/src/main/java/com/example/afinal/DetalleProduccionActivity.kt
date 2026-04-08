@@ -59,7 +59,9 @@ class DetalleProduccionActivity : AppCompatActivity() {
 
     private fun obtenerDatosServidor() {
         swipeRefresh.isRefreshing = true
-        val request = JsonObjectRequest(Request.Method.GET, urlApi, null,
+        val urlConFiltro = "$urlApi?proyecto=$empresaSeleccionada"
+
+        val request = JsonObjectRequest(Request.Method.GET, urlConFiltro, null,
             { response ->
                 swipeRefresh.isRefreshing = false
                 try {
@@ -67,61 +69,58 @@ class DetalleProduccionActivity : AppCompatActivity() {
                     val scrapTotalBD = response.getInt("scrap_total")
 
                     val produccionArray = response.getJSONArray("produccion_horaria")
-                    var produccionActualEmpresa = 0
-                    var produccionTotalPlanta = 0
+                    var produccionActual = 0
 
                     for (i in 0 until produccionArray.length()) {
                         val obj = produccionArray.getJSONObject(i)
-                        produccionTotalPlanta += obj.getInt("total")
-                        if (empresaSeleccionada == "KIA") {
-                            produccionActualEmpresa += obj.getInt("kia")
-                        } else {
-                            produccionActualEmpresa += obj.getInt("toyota")
-                        }
+                        produccionActual += obj.getInt("cantidad")
                     }
 
-                    val porcentajeScrap = if (produccionTotalPlanta > 0) {
-                        (scrapTotalBD.toFloat() / produccionTotalPlanta.toFloat()) * 100
+                    // Porcentaje de Scrap sobre el total de piezas tocadas (OK + Scrap)
+                    val totalPiezasTocadas = produccionActual + scrapTotalBD
+                    val porcentajeScrap = if (totalPiezasTocadas > 0) {
+                        (scrapTotalBD.toFloat() / totalPiezasTocadas.toFloat()) * 100
                     } else { 0f }
 
                     if (porcentajeScrap > 5.0f) {
-                        lanzarNotificacionPush("ALERTA DE CALIDAD", "Scrap Crítico: ${String.format("%.1f", porcentajeScrap)}%")
+                        lanzarNotificacionPush("SCRAP ALTO - $empresaSeleccionada",
+                            "Nivel crítico detectado: ${String.format("%.1f", porcentajeScrap)}%")
                     }
 
-                    actualizarInterfaz(produccionActualEmpresa, meta, scrapTotalBD, porcentajeScrap)
+                    actualizarInterfaz(produccionActual, meta, scrapTotalBD, porcentajeScrap)
 
                 } catch (e: Exception) {
-                    Toast.makeText(this, "Error en datos: ${e.message}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
                 }
             },
             { error ->
                 swipeRefresh.isRefreshing = false
-                Toast.makeText(this, "Error de conexión", Toast.LENGTH_LONG).show()
+                Toast.makeText(this, "Error de red", Toast.LENGTH_LONG).show()
             }
         )
         Volley.newRequestQueue(this).add(request)
     }
 
-    private fun actualizarInterfaz(actual: Int, meta: Int, scrapReal: Int, scrapPercent: Float) {
-        tvEmpresa.text = "$empresaSeleccionada - Producción Real"
-        tvMetaVal.text = meta.toString()
-        tvProduccionVal.text = actual.toString()
+    private fun actualizarInterfaz(actual: Int, meta: Int, scrap: Int, scrapPercent: Float) {
+        tvEmpresa.text = "$empresaSeleccionada - PLANTA SMT"
+        tvMetaVal.text = "$meta"
+        tvProduccionVal.text = "$actual"
 
-        // Seguridad: Si la meta es 0, el cumplimiento es 0% (evita crash por división / 0)
         val cumplimiento = if (meta > 0) (actual.toFloat() / meta.toFloat() * 100).toInt() else 0
         tvPorcentajeVal.text = "$cumplimiento%"
 
+        // Lógica de semáforo mejorada
         val colorSemaforo = when {
-            scrapPercent > 5 -> Color.parseColor("#F44336")
-            cumplimiento >= 100 -> Color.parseColor("#4CAF50")
-            cumplimiento >= 85 -> Color.parseColor("#FF9800")
-            else -> Color.parseColor("#F44336")
+            scrapPercent > 5 -> Color.parseColor("#EF4444") // Rojo por Calidad
+            cumplimiento >= 95 -> Color.parseColor("#22C55E") // Verde (Meta casi cumplida)
+            cumplimiento >= 75 -> Color.parseColor("#F59E0B") // Ámbar
+            else -> Color.parseColor("#EF4444") // Rojo por productividad
         }
 
         statusIndicator.setBackgroundColor(colorSemaforo)
         tvPorcentajeVal.setTextColor(colorSemaforo)
 
-        renderizarGraficas(actual, meta, scrapReal, colorSemaforo)
+        renderizarGraficas(actual, meta, scrap, colorSemaforo)
     }
 
     private fun renderizarGraficas(actual: Int, meta: Int, scrapReal: Int, color: Int) {
@@ -129,18 +128,26 @@ class DetalleProduccionActivity : AppCompatActivity() {
         val entriesPie = ArrayList<PieEntry>()
         val pLogrado = if (meta > 0) (actual.toFloat() / meta.toFloat() * 100) else 0f
 
-        if (pLogrado > 0) entriesPie.add(PieEntry(pLogrado, "Producción"))
-        if (pLogrado < 100) entriesPie.add(PieEntry(100f - pLogrado, "Faltante"))
+        // No permitimos que el gráfico se rompa si superamos el 100%
+        val logDisplay = if (pLogrado > 100f) 100f else pLogrado
+        val pPendiente = if (100f - logDisplay < 0) 0f else 100f - logDisplay
 
-        val dataSetPie = PieDataSet(entriesPie, "")
-        dataSetPie.colors = listOf(color, Color.LTGRAY)
+        entriesPie.add(PieEntry(logDisplay, "Logrado"))
+        if (pPendiente > 0) entriesPie.add(PieEntry(pPendiente, "Pendiente"))
+
+        val dataSetPie = PieDataSet(entriesPie, "").apply {
+            colors = listOf(color, Color.parseColor("#E2E8F0"))
+            valueTextColor = Color.WHITE
+            valueTextSize = 14f
+        }
+
         pieChartCumplimiento.data = PieData(dataSetPie).apply {
             setValueFormatter(PercentFormatter(pieChartCumplimiento))
-            setValueTextSize(12f)
-            setValueTextColor(Color.WHITE)
         }
         pieChartCumplimiento.setUsePercentValues(true)
+        pieChartCumplimiento.centerText = "EFICIENCIA"
         pieChartCumplimiento.description.isEnabled = false
+        pieChartCumplimiento.animateY(800)
         pieChartCumplimiento.invalidate()
 
         // BarChart
@@ -148,19 +155,23 @@ class DetalleProduccionActivity : AppCompatActivity() {
         entriesBar.add(BarEntry(0f, actual.toFloat()))
         entriesBar.add(BarEntry(1f, scrapReal.toFloat()))
 
-        val dataSetBar = BarDataSet(entriesBar, "Producción (Azul) vs Scrap (Rojo)")
-        dataSetBar.colors = listOf(Color.parseColor("#2196F3"), Color.parseColor("#F44336"))
-        barChartScrap.data = BarData(dataSetBar).apply { setValueTextSize(12f) }
+        val dataSetBar = BarDataSet(entriesBar, "Piezas").apply {
+            colors = listOf(Color.parseColor("#3B82F6"), Color.parseColor("#EF4444"))
+            valueTextSize = 12f
+        }
+
+        barChartScrap.data = BarData(dataSetBar)
         barChartScrap.description.isEnabled = false
         barChartScrap.xAxis.isEnabled = false
+        barChartScrap.animateY(1000)
         barChartScrap.invalidate()
     }
 
     private fun crearCanalNotificaciones() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(CHANNEL_ID, "Alertas SMT", NotificationManager.IMPORTANCE_HIGH)
+            val channel = NotificationChannel(CHANNEL_ID, "Alertas Calidad", NotificationManager.IMPORTANCE_HIGH)
             val manager = getSystemService(NotificationManager::class.java)
-            manager.createNotificationChannel(channel)
+            manager?.createNotificationChannel(channel)
         }
     }
 
@@ -169,7 +180,7 @@ class DetalleProduccionActivity : AppCompatActivity() {
         val pIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_IMMUTABLE)
 
         val notif = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setSmallIcon(android.R.drawable.ic_dialog_alert)
+            .setSmallIcon(android.R.drawable.stat_notify_error)
             .setContentTitle(titulo)
             .setContentText(msg)
             .setPriority(NotificationCompat.PRIORITY_HIGH)

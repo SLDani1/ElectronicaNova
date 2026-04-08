@@ -45,8 +45,10 @@ class MainActivity : AppCompatActivity() {
                         val nombre = json.getString("nombre")
                         val rolId = json.getInt("rol_id")
 
-                        // Redirigir según el rol recibido
-                        irAlDashboard(rolId, nombre)
+                        val userId = json.getInt("id")
+
+
+                        irAlDashboard(rolId, nombre, userId)
 
                     } else {
                         Toast.makeText(this, "Credenciales incorrectas", Toast.LENGTH_SHORT).show()
@@ -56,7 +58,11 @@ class MainActivity : AppCompatActivity() {
                 }
             },
             { error ->
-                Toast.makeText(this, "Error de red: Verifica tu conexión o IP", Toast.LENGTH_LONG).show()
+                val mensajeError = error.message ?: error.toString()
+                val codigoEstado = error.networkResponse?.statusCode ?: "Sin código"
+
+                Toast.makeText(this, "Falla: $mensajeError (Cód: $codigoEstado)", Toast.LENGTH_LONG).show()
+                error.printStackTrace()
             }) {
             override fun getParams(): Map<String, String> {
                 return mapOf("user" to user, "pass" to pass)
@@ -65,24 +71,23 @@ class MainActivity : AppCompatActivity() {
         Volley.newRequestQueue(this).add(request)
     }
 
-    private fun irAlDashboard(rolId: Int, nombre: String) {
+    private fun irAlDashboard(rolId: Int, nombre: String, userId: Int) {
         val intent: Intent? = when (rolId) {
-            1 -> Intent(this, DashboardTecnicoActivity::class.java)       //TECNICO
-            2 -> Intent(this, DashboardIngenieroActivity::class.java)   //INGENIERO
-            3 -> Intent(this, DashboardGerenteActivity::class.java)    //GERENTE
-
+            4 -> Intent(this, DashboardTecnicoActivity::class.java)       // TECNICO
+            5 -> Intent(this, DashboardIngenieroActivity::class.java)     // INGENIERO
+            6 -> Intent(this, DashboardGerenteActivity::class.java)       // GERENTE
             else -> null
         }
 
         if (intent != null) {
             intent.putExtra("USER_NAME", nombre)
-            // Opcional: Pasar empresa por defecto si no tienes un selector de planta aún
+            intent.putExtra("USER_ID", userId)
             intent.putExtra("EMPRESA_TIPO", "KIA")
 
             startActivity(intent)
-            finish() // Evita que regresen al login con el botón de "atrás"
+            finish()
         } else {
-            Toast.makeText(this, "Acceso denegado: Rol $rolId no reconocido", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Acceso denegado: Rol $rolId no reconocido o sin dashboard asignado", Toast.LENGTH_SHORT).show()
         }
     }
 }

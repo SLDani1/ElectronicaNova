@@ -23,8 +23,8 @@ class DashboardTecnicoActivity : AppCompatActivity(), SensorEventListener {
     private var variacionAceleracion = 0f
     private var ultimoTiempoSacudida: Long = 0
     private var nombreUsuario = ""
+    private var userId = -1
 
-    // El vigilante de paros
     private lateinit var notifier: RealTimeNotifier
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -32,18 +32,17 @@ class DashboardTecnicoActivity : AppCompatActivity(), SensorEventListener {
         setContentView(R.layout.activity_dashboard_tecnico)
 
         // 1. RECIBIR DATOS DEL LOGIN
-        val userId = intent.getIntExtra("USER_ID", 1) // <--- CLAVE PARA EL NOTIFICADOR
+        userId = intent.getIntExtra("USER_ID", -1)
         nombreUsuario = intent.getStringExtra("USER_NAME") ?: "Usuario"
-        val puestoUsuario = intent.getStringExtra("USER_ROLE") ?: "Técnico SMT"
+        val puestoUsuario = "Técnico SMT"
 
         val tvUserName = findViewById<TextView>(R.id.tvUserName)
         val tvUserRole = findViewById<TextView>(R.id.tvUserRole)
         tvUserName.text = nombreUsuario
         tvUserRole.text = puestoUsuario
 
-        // 2. INICIALIZAR NOTIFIER (CORREGIDO CON USER_ID QUitado del paréntesis)
+        // 2. INICIALIZAR NOTIFICADOR
         notifier = RealTimeNotifier { titulo, mensaje ->
-            // Alerta visual para el técnico
             androidx.appcompat.app.AlertDialog.Builder(this)
                 .setTitle(titulo)
                 .setMessage(mensaje)
@@ -55,7 +54,7 @@ class DashboardTecnicoActivity : AppCompatActivity(), SensorEventListener {
         sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
         acelerometro = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
 
-        // 4. CLICKS
+        // 4. CLICKS EN BOTONES
         val cardReportar = findViewById<CardView>(R.id.cardReportarFalla)
         val cardHistorial = findViewById<CardView>(R.id.cardHistorialReportes)
         val btnCerrarSesion = findViewById<ImageView>(R.id.btnCerrarSesion)
@@ -76,6 +75,7 @@ class DashboardTecnicoActivity : AppCompatActivity(), SensorEventListener {
     private fun abrirReporteFalla() {
         val i = Intent(this, ReporteTecnicoActivity::class.java)
         i.putExtra("TECNICO_NOMBRE", nombreUsuario)
+        i.putExtra("USER_ID", userId) // PASAMOS EL ID PARA QUE NO DE ERROR DE BD
         startActivity(i)
     }
 

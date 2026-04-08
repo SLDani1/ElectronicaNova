@@ -79,17 +79,16 @@ class GestionUsuariosActivity : AppCompatActivity() {
         val inputNumEmp = EditText(this).apply { hint = "Ej: EMP T 123"; setText(usuario?.numeroEmpleado ?: "") }
         val tvStatus = TextView(this).apply { textSize = 12f; setPadding(10, 0, 0, 10) }
 
-        // El campo de contraseña ahora está disponible siempre para poder resetearla
         val inputPass = EditText(this).apply {
             hint = if (isCrear) "Contraseña" else "Nueva contraseña (opcional)"
             transformationMethod = PasswordTransformationMethod.getInstance()
         }
 
         val rg = RadioGroup(this).apply {
-            addView(RadioButton(context).apply { text = "Técnico"; id = 1 })
-            addView(RadioButton(context).apply { text = "Ingeniero"; id = 2 })
-            addView(RadioButton(context).apply { text = "Gerente"; id = 3 })
-            check(usuario?.rolId ?: 1)
+            addView(RadioButton(context).apply { text = "Técnico"; id = 4 })
+            addView(RadioButton(context).apply { text = "Ingeniero"; id = 5 })
+            addView(RadioButton(context).apply { text = "Gerente"; id = 6 })
+            check(usuario?.rolId ?: 4)
         }
 
         inputNumEmp.addTextChangedListener(object : TextWatcher {
@@ -97,9 +96,10 @@ class GestionUsuariosActivity : AppCompatActivity() {
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
                 val texto = s.toString()
                 val upper = texto.uppercase()
-                if (upper.contains("T")) rg.check(1)
-                else if (upper.contains("I")) rg.check(2)
-                else if (upper.contains("G")) rg.check(3)
+
+                if (upper.contains("T")) rg.check(4)
+                else if (upper.contains("I")) rg.check(5)
+                else if (upper.contains("G")) rg.check(6)
 
                 if (texto.length >= 4) {
                     thread {
@@ -117,10 +117,10 @@ class GestionUsuariosActivity : AppCompatActivity() {
                             val ocupado = JSONObject(res).getBoolean("ocupado")
                             runOnUiThread {
                                 if (ocupado) {
-                                    tvStatus.text = "⚠️ Este número ya está en uso"
+                                    tvStatus.text = "⚠Este número ya está en uso"
                                     tvStatus.setTextColor(Color.RED)
                                 } else {
-                                    tvStatus.text = "✅ Número disponible"
+                                    tvStatus.text = "Número disponible"
                                     tvStatus.setTextColor(Color.parseColor("#27AE60"))
                                 }
                             }
@@ -134,7 +134,7 @@ class GestionUsuariosActivity : AppCompatActivity() {
         layout.addView(inputNombre)
         layout.addView(inputNumEmp)
         layout.addView(tvStatus)
-        layout.addView(inputPass) // Agregado al layout siempre
+        layout.addView(inputPass)
         layout.addView(rg)
 
         builder.setView(layout)
@@ -146,7 +146,6 @@ class GestionUsuariosActivity : AppCompatActivity() {
                 put("numero_empleado", inputNumEmp.text.toString())
                 put("rol_id", rg.checkedRadioButtonId)
 
-                // Solo mandamos la contraseña si no está vacía
                 val passTxt = inputPass.text.toString()
                 if (passTxt.isNotEmpty()) {
                     put("password", passTxt)
@@ -178,30 +177,39 @@ class UsuarioAdapter(private val lista: List<Usuario>, private val onClick: (Usu
         val tvNumEmpleado: TextView = v.findViewById(R.id.tvItemNumEmpleado)
         val btn: ImageButton = v.findViewById(R.id.btnEditar)
     }
+
     override fun onCreateViewHolder(p: ViewGroup, t: Int) = ViewHolder(LayoutInflater.from(p.context).inflate(R.layout.item_usuario, p, false))
+
     override fun onBindViewHolder(h: ViewHolder, p: Int) {
         val u = lista[p]
         h.tvNombre.text = u.nombre
         h.tvNumEmpleado.text = u.numeroEmpleado
 
         val shape = GradientDrawable().apply { cornerRadius = 12f }
+
         when(u.rolId) {
-            1 -> {
+            4 -> {
                 h.tvRol.text = "TÉCNICO"
                 shape.setColor(Color.parseColor("#2ECC71"))
             }
-            2 -> {
+            5 -> {
                 h.tvRol.text = "INGENIERO"
                 shape.setColor(Color.parseColor("#E67E22"))
             }
-            3 -> {
+            6 -> {
                 h.tvRol.text = "GERENTE"
                 shape.setColor(Color.parseColor("#34495E"))
             }
+            else -> {
+                h.tvRol.text = "OTRO ROL"
+                shape.setColor(Color.GRAY)
+            }
         }
+
         h.tvRol.setTextColor(Color.WHITE)
         h.tvRol.background = shape
         h.btn.setOnClickListener { onClick(u) }
     }
+
     override fun getItemCount() = lista.size
 }
